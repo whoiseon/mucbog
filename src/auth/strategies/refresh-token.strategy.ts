@@ -15,7 +15,12 @@ export class RefreshTokenStrategy extends PassportStrategy(
 ) {
   constructor(private configService: ConfigService) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      // jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (request: Request) => {
+          return request?.cookies['refresh_token'];
+        },
+      ]),
       secretOrKey: configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
       passReqToCallback: true,
     });
@@ -25,11 +30,8 @@ export class RefreshTokenStrategy extends PassportStrategy(
     req: Request,
     payload: JwtPayloadType,
   ): Promise<JwtPayloadWithRefreshToken> {
-    const refreshToken = req
-      ?.get('authorization')
-      ?.replace('Bearer', '')
-      .trim();
-
+    const refreshToken = req.cookies['refresh_token'];
+    if (!refreshToken) throw new ForbiddenException('Refresh token malformed');
     return {
       ...payload,
       refreshToken,

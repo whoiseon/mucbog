@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { Repository, Not, IsNull } from 'typeorm';
-import { User } from 'src/users/entity/user.entity';
+import { User } from 'src/auth/entity/user.entity';
 import { AuthCredentialsDto } from 'src/auth/dto/auth-credentials.dto';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -137,5 +137,9 @@ export class AuthService {
       access_token: accessToken,
       refresh_token: refreshToken,
     };
+  }
+
+  async getMyInfo(user: User): Promise<JwtPayloadType> {
+    return user;
   }
 }

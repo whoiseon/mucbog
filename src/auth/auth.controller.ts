@@ -12,10 +12,10 @@ import { AuthCredentialsDto } from 'src/auth/dto/auth-credentials.dto';
 import { LoginResponse } from 'src/auth/types';
 import { GetCurrentUser, GetCurrentUserId } from 'src/lib/decorators';
 import { Tokens } from 'src/auth/types/token.type';
-import { User } from 'src/users/entity/user.entity';
-import { AuthGuard } from '@nestjs/passport';
+import { User } from 'src/auth/entity/user.entity';
 import { Public } from 'src/lib/decorators/public-decorator';
-import { AccessTokenGuard } from 'src/lib/guards';
+import { AccessTokenGuard, RefreshTokenGuard } from 'src/lib/guards';
+import { Request, Response } from 'express';
 
 @Controller('api/auth')
 export class AuthController {
@@ -35,13 +35,23 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async login(
     @Body() authCredentialsDto: AuthCredentialsDto,
-    @Req() req,
+    @Req() req: Request,
   ): Promise<LoginResponse> {
     const user = await this.authService.login(authCredentialsDto);
-    req.res.setHeader('Set-Cookie', [
-      `access_token=${user.tokens.access_token}`,
-      `refresh_token=${user.tokens.refresh_token}`,
-    ]);
+    req.res.cookie('access_token', user.tokens.access_token, {
+      domain: 'localhost',
+      path: '/',
+      httpOnly: true,
+    });
+    req.res.cookie('refresh_token', user.tokens.refresh_token, {
+      domain: 'localhost',
+      path: '/',
+      httpOnly: true,
+    });
+    // req.res.setHeader('Set-Cookie', [
+    //   `access_token=${user.tokens.access_token}`,
+    //   `refresh_token=${user.tokens.refresh_token}`,
+    // ]);
     return user;
   }
 
@@ -50,12 +60,15 @@ export class AuthController {
   logout(
     @GetCurrentUserId() userId: number,
     @GetCurrentUser() user: User,
+    @Req() req: Request,
   ): Promise<boolean> {
-    console.log(user);
+    req.res.clearCookie('access_token');
+    req.res.clearCookie('refresh_token');
     return this.authService.logout(userId);
   }
 
   @Public()
+  @UseGuards(RefreshTokenGuard)
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   refreshToken(
@@ -65,9 +78,9 @@ export class AuthController {
     return this.authService.refreshTokens(userId, refreshToken);
   }
 
-  @Post('test')
+  @Post('me')
   @UseGuards(AccessTokenGuard)
-  test(@Req() req) {
-    console.log('req', req);
+  test(@GetCurrentUser() user: User) {
+    return this.authService.getMyInfo(user);
   }
 }
