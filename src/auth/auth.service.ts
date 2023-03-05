@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import { Repository, Not, IsNull } from 'typeorm';
 import { User } from 'src/auth/entity/user.entity';
@@ -17,6 +18,8 @@ import { LoginResponse } from 'src/auth/types';
 
 @Injectable()
 export class AuthService {
+  private logger = new Logger('AuthService');
+
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
@@ -61,10 +64,10 @@ export class AuthService {
   async login(authCredentialsDto: AuthCredentialsDto): Promise<LoginResponse> {
     const { username, password } = authCredentialsDto;
     const user = await this.userRepository.findOneBy({ username });
-    if (!user) throw new ForbiddenException('Access Denied');
+    if (!user) throw new ForbiddenException('AuthenticationError');
 
     const passwordMatched = await bcrypt.compare(password, user.passwordHash);
-    if (!passwordMatched) throw new ForbiddenException('Access Denied');
+    if (!passwordMatched) throw new ForbiddenException('AuthenticationError');
 
     const tokens = await this.generateTokens(user);
     await this.updateRefreshToken(user.id, tokens.refresh_token);
@@ -121,14 +124,14 @@ export class AuthService {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
         secret: this.configService.get<string>('JWT_ACCESS_TOKEN_SECRET'),
-        expiresIn: +this.configService.get<string>(
-          'JWT_ACCESS_TOKEN_EXPIRATION_TIME',
+        expiresIn: parseInt(
+          this.configService.get<string>('JWT_ACCESS_TOKEN_EXPIRATION_TIME'),
         ),
       }),
       this.jwtService.signAsync(payload, {
         secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
-        expiresIn: +this.configService.get<string>(
-          'JWT_REFRESH_TOKEN_EXPIRATION_TIME',
+        expiresIn: parseInt(
+          this.configService.get<string>('JWT_REFRESH_TOKEN_EXPIRATION_TIME'),
         ),
       }),
     ]);

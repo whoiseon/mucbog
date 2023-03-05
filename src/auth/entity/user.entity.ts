@@ -3,10 +3,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
+import { Post } from 'src/posts/entity/post.entity';
 
 @Entity()
 @Unique(['username'])
@@ -26,4 +28,7 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   @Exclude()
   hashedRefreshToken?: string;
+
+  @OneToMany((type) => Post, (post) => post.user, { eager: true })
+  posts: Post[];
 }

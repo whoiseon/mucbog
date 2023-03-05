@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -16,10 +17,14 @@ import { User } from 'src/auth/entity/user.entity';
 import { Public } from 'src/lib/decorators/public-decorator';
 import { AccessTokenGuard, RefreshTokenGuard } from 'src/lib/guards';
 import { Request, Response } from 'express';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('api/auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private configService: ConfigService,
+  ) {}
 
   @Public()
   @Post('register')
@@ -41,17 +46,15 @@ export class AuthController {
     req.res.cookie('access_token', user.tokens.access_token, {
       domain: 'localhost',
       path: '/',
-      httpOnly: true,
+      expires: new Date(Date.now() + 1000 * 60 * 60),
+      httpOnly: false,
     });
     req.res.cookie('refresh_token', user.tokens.refresh_token, {
       domain: 'localhost',
       path: '/',
-      httpOnly: true,
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+      httpOnly: false,
     });
-    // req.res.setHeader('Set-Cookie', [
-    //   `access_token=${user.tokens.access_token}`,
-    //   `refresh_token=${user.tokens.refresh_token}`,
-    // ]);
     return user;
   }
 
@@ -78,7 +81,7 @@ export class AuthController {
     return this.authService.refreshTokens(userId, refreshToken);
   }
 
-  @Post('me')
+  @Get('me')
   @UseGuards(AccessTokenGuard)
   test(@GetCurrentUser() user: User) {
     return this.authService.getMyInfo(user);

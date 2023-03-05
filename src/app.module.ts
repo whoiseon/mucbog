@@ -5,6 +5,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeORMConfig } from 'src/configs/typeorm.config';
 import { APP_GUARD } from '@nestjs/core';
 import { AccessTokenGuard } from 'src/lib/guards';
+import { PostsModule } from './posts/posts.module';
+import { TagsModule } from './tags/tags.module';
+import { PostTagsModule } from './post-tags/post-tags.module';
 
 @Module({
   imports: [
@@ -21,6 +24,9 @@ import { AccessTokenGuard } from 'src/lib/guards';
       }),
     ),
     AuthModule,
+    PostsModule,
+    TagsModule,
+    PostTagsModule,
   ],
   controllers: [],
   providers: [

@@ -21,6 +21,7 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
           return request?.cookies['access_token'];
         },
       ]),
+      ignoreExpiration: false,
       // jwtFromRequest: ExtractJwt.fromExtractors([
       //   (request: Request) => {
       //     return request?.cookies?.Authentication;
