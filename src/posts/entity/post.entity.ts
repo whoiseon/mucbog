@@ -36,6 +36,9 @@ export class Post extends BaseEntity {
   @UpdateDateColumn()
   updatedAt: Date;
 
+  @Column({ default: true })
+  isPrivate: boolean;
+
   @Column({ length: 255, nullable: true, type: 'varchar' })
   thumbnail?: string;
 

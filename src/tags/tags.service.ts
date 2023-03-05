@@ -11,12 +11,18 @@ export class TagsService {
   ) {}
 
   async findOrCreate(tagName: string): Promise<Tag> {
-    const tag = await this.tagRepository.findOneBy({ name: tagName });
+    const lowerCaseTagName = tagName.toLowerCase();
+    const tag = await this.tagRepository.findOneBy({
+      name: lowerCaseTagName,
+    });
+
     try {
       if (tag) {
         return tag;
       } else {
-        const newTag = this.tagRepository.create({ name: tagName });
+        const newTag = this.tagRepository.create({
+          name: lowerCaseTagName,
+        });
         await this.tagRepository.save(newTag);
 
         return newTag;
