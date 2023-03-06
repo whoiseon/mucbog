@@ -6,10 +6,17 @@ import { User } from 'src/auth/entity/user.entity';
 import { PostsService } from 'src/posts/posts.service';
 import { AccessTokenGuard } from 'src/lib/guards';
 import { TagsService } from 'src/tags/tags.service';
+import { Public } from 'src/lib/decorators/public-decorator';
 
 @Controller('api/posts')
 export class PostsController {
   constructor(private postsService: PostsService) {}
+
+  @Public()
+  @Get()
+  getLatestPosts(): Promise<PostEntity[]> {
+    return this.postsService.getRecentPosts();
+  }
 
   @Post()
   @UseGuards(AccessTokenGuard)

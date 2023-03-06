@@ -14,13 +14,37 @@ export class PostsService {
     private tagsService: TagsService,
   ) {}
 
+  async getRecentPosts(): Promise<Post[]> {
+    const posts = await this.postRepository.find({
+      relations: ['user', 'tags'],
+      select: [
+        'id',
+        'title',
+        'description',
+        'body',
+        'thumbnail',
+        'createdAt',
+        'user',
+        'tags',
+      ],
+      where: [{ isPrivate: true }],
+      order: {
+        createdAt: 'DESC',
+      },
+      take: 20,
+    });
+
+    return posts;
+  }
+
   async createPost(createPostDto: CreatePostDto, user: User): Promise<Post> {
-    const { title, body, description, tags } = createPostDto;
+    const { title, body, description, tags, thumbnail } = createPostDto;
     const post = this.postRepository.create({
       user,
       title,
       description,
       body,
+      thumbnail,
     });
     const newTags = [];
     for (const tagName of tags) {

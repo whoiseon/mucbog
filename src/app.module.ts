@@ -8,9 +8,12 @@ import { AccessTokenGuard } from 'src/lib/guards';
 import { PostsModule } from './posts/posts.module';
 import { TagsModule } from './tags/tags.module';
 import { PostTagsModule } from './post-tags/post-tags.module';
+import { UploadsModule } from './uploads/uploads.module';
+import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
   imports: [
+    MulterModule.register({ dest: 'posts/' }),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -27,6 +30,7 @@ import { PostTagsModule } from './post-tags/post-tags.module';
     PostsModule,
     TagsModule,
     PostTagsModule,
+    UploadsModule,
   ],
   controllers: [],
   providers: [

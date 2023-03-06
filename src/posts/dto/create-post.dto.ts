@@ -10,6 +10,9 @@ export class CreatePostDto {
   @IsString()
   description: string;
 
+  @IsString()
+  thumbnail: string;
+
   @IsString({ each: true })
   tags: string[];
 }
