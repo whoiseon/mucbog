@@ -7,9 +7,9 @@ import { APP_GUARD } from '@nestjs/core';
 import { AccessTokenGuard } from 'src/lib/guards';
 import { PostsModule } from './posts/posts.module';
 import { TagsModule } from './tags/tags.module';
-import { PostTagsModule } from './post-tags/post-tags.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { MulterModule } from '@nestjs/platform-express';
+import { CategoriesModule } from './categories/categories.module';
 
 @Module({
   imports: [
@@ -29,8 +29,8 @@ import { MulterModule } from '@nestjs/platform-express';
     AuthModule,
     PostsModule,
     TagsModule,
-    PostTagsModule,
     UploadsModule,
+    CategoriesModule,
   ],
   controllers: [],
   providers: [

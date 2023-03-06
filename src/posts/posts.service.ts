@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Post } from 'src/posts/entity/post.entity';
 import { Repository } from 'typeorm';
 import { CreatePostDto } from 'src/posts/dto/create-post.dto';
 import { User } from 'src/auth/entity/user.entity';
 import { TagsService } from 'src/tags/tags.service';
+import { CategoriesService } from 'src/categories/categories.service';
 
 @Injectable()
 export class PostsService {
@@ -12,9 +13,10 @@ export class PostsService {
     @InjectRepository(Post)
     private postRepository: Repository<Post>,
     private tagsService: TagsService,
+    private categoryService: CategoriesService,
   ) {}
 
-  async getRecentPosts(): Promise<Post[]> {
+  async getRecentPosts(categoryId: number): Promise<Post[]> {
     const posts = await this.postRepository.find({
       relations: ['user', 'tags'],
       select: [
@@ -27,7 +29,7 @@ export class PostsService {
         'user',
         'tags',
       ],
-      where: [{ isPrivate: true }],
+      where: [{ isPrivate: true, category: { id: categoryId } }],
       order: {
         createdAt: 'DESC',
       },
@@ -38,13 +40,16 @@ export class PostsService {
   }
 
   async createPost(createPostDto: CreatePostDto, user: User): Promise<Post> {
-    const { title, body, description, tags, thumbnail } = createPostDto;
+    const { title, body, description, tags, thumbnail, categoryId } =
+      createPostDto;
+    const category = await this.categoryService.getCategories(categoryId);
     const post = this.postRepository.create({
       user,
       title,
       description,
       body,
       thumbnail,
+      category,
     });
     const newTags = [];
     for (const tagName of tags) {

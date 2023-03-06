@@ -13,6 +13,7 @@ import {
 } from 'typeorm';
 import { User } from 'src/auth/entity/user.entity';
 import { Tag } from 'src/tags/entity/tag.entity';
+import { Category } from 'src/categories/entity/category.entity';
 
 @Entity()
 export class Post extends BaseEntity {
@@ -42,16 +43,12 @@ export class Post extends BaseEntity {
   @Column({ length: 255, nullable: true, type: 'varchar' })
   thumbnail?: string;
 
-  @ManyToMany((type) => Tag)
-  @JoinTable({
-    name: 'post_tags',
-    joinColumn: {
-      name: 'postId',
-    },
-    inverseJoinColumn: {
-      name: 'tagId',
-    },
-  })
+  @ManyToOne((type) => Category, (category) => category.posts)
+  @JoinColumn({ name: 'categoryId' })
+  category: Category;
+
+  @ManyToMany((type) => Tag, (tag) => tag.posts)
+  @JoinTable({ name: 'post_tags' })
   tags: Tag[];
 
   @ManyToOne((type) => User, (user) => user.posts, { eager: false })

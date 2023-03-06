@@ -13,9 +13,15 @@ export class PostsController {
   constructor(private postsService: PostsService) {}
 
   @Public()
-  @Get()
-  getLatestPosts(): Promise<PostEntity[]> {
-    return this.postsService.getRecentPosts();
+  @Get('dev')
+  getDevLatestPosts(): Promise<PostEntity[]> {
+    return this.postsService.getRecentPosts(1);
+  }
+
+  @Public()
+  @Get('project')
+  getProjectLatestPosts(): Promise<PostEntity[]> {
+    return this.postsService.getRecentPosts(2);
   }
 
   @Post()

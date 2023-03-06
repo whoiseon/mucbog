@@ -2,25 +2,19 @@ import {
   BaseEntity,
   Column,
   Entity,
-  Index,
-  JoinColumn,
-  JoinTable,
-  ManyToMany,
+  OneToMany,
   PrimaryGeneratedColumn,
-  Unique,
 } from 'typeorm';
 import { Post } from 'src/posts/entity/post.entity';
 
 @Entity()
-@Unique(['name'])
-export class Tag extends BaseEntity {
+export class Category extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Index()
-  @Column({ length: 255 })
+  @Column()
   name: string;
 
-  @ManyToMany((type) => Post, (post) => post.tags)
+  @OneToMany((type) => Post, (post) => post.category, { eager: false })
   posts: Post[];
 }

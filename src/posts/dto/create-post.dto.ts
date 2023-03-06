@@ -1,4 +1,4 @@
-import { IsString } from 'class-validator';
+import { IsNumber, IsString } from 'class-validator';
 
 export class CreatePostDto {
   @IsString()
@@ -15,4 +15,7 @@ export class CreatePostDto {
 
   @IsString({ each: true })
   tags: string[];
+
+  @IsNumber()
+  categoryId: number;
 }
