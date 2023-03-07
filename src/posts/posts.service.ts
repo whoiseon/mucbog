@@ -16,9 +16,31 @@ export class PostsService {
     private categoryService: CategoriesService,
   ) {}
 
+  async getPosts(): Promise<Post[]> {
+    const posts = await this.postRepository.find({
+      relations: ['user', 'tags', 'category'],
+      select: [
+        'id',
+        'title',
+        'description',
+        'body',
+        'thumbnail',
+        'createdAt',
+        'user',
+        'tags',
+      ],
+      where: [{ isPrivate: true }],
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+
+    return posts;
+  }
+
   async getRecentPosts(categoryId: number): Promise<Post[]> {
     const posts = await this.postRepository.find({
-      relations: ['user', 'tags'],
+      relations: ['user', 'tags', 'category'],
       select: [
         'id',
         'title',
@@ -37,6 +59,49 @@ export class PostsService {
     });
 
     return posts;
+  }
+
+  async getPostsByTag(tag: string): Promise<Post[]> {
+    const posts = await this.postRepository.find({
+      relations: ['user', 'tags', 'category'],
+      select: [
+        'id',
+        'title',
+        'description',
+        'body',
+        'thumbnail',
+        'createdAt',
+        'user',
+        'tags',
+      ],
+      where: [{ isPrivate: true, tags: { name: tag } }],
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+
+    return posts;
+  }
+
+  async getPostByTitle(title: string): Promise<Post | undefined> {
+    const convertedTitle = title.replace(/-/g, '');
+    const post = await this.postRepository
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.user', 'user')
+      .leftJoinAndSelect('post.tags', 'tags')
+      .leftJoinAndSelect('post.category', 'category')
+      .where(
+        "REGEXP_REPLACE(post.title, '[^a-zA-Z0-9가-힣₩₩s]', '', 'g') = :convertedTitle",
+        {
+          convertedTitle,
+        },
+      )
+      .getOne();
+    if (!post) {
+      throw new BadRequestException('Post not found');
+    }
+
+    return post;
   }
 
   async createPost(createPostDto: CreatePostDto, user: User): Promise<Post> {
