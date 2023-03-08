@@ -39,8 +39,8 @@ export class PostsController {
   }
 
   @Public()
-  @Get()
-  getPostsByTag(@Query('tag') tag: string): Promise<PostEntity[]> {
+  @Get('/tag/:tag')
+  getPostsByTag(@Param('tag') tag: string): Promise<PostEntity[]> {
     return this.postsService.getPostsByTag(tag);
   }
 
