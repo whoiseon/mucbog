@@ -15,6 +15,11 @@ import { User } from 'src/auth/entity/user.entity';
 import { Tag } from 'src/tags/entity/tag.entity';
 import { Category } from 'src/categories/entity/category.entity';
 
+export interface LinkedPosts {
+  prevPost: string;
+  nextPost: string;
+}
+
 @Entity()
 export class Post extends BaseEntity {
   @PrimaryGeneratedColumn()

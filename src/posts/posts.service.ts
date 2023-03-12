@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Post } from 'src/posts/entity/post.entity';
+import { LinkedPosts, Post } from 'src/posts/entity/post.entity';
 import { Repository } from 'typeorm';
 import { CreatePostDto } from 'src/posts/dto/create-post.dto';
 import { User } from 'src/auth/entity/user.entity';
@@ -91,7 +91,7 @@ export class PostsService {
       .leftJoinAndSelect('post.tags', 'tags')
       .leftJoinAndSelect('post.category', 'category')
       .where(
-        "REGEXP_REPLACE(post.title, '[^a-zA-Z0-9가-힣₩₩s]', '', 'g') = :convertedTitle",
+        "REGEXP_REPLACE(LOWER(post.title), '[^a-zA-Z0-9가-힣₩₩s]', '', 'g') = :convertedTitle",
         {
           convertedTitle,
         },
@@ -101,6 +101,26 @@ export class PostsService {
       throw new BadRequestException('Post not found');
     }
 
+    const [prevPost, nextPost] = await Promise.all([
+      this.postRepository
+        .createQueryBuilder('post')
+        .select(['post.title'])
+        .where('post.createdAt < :postCreatedAt', {
+          postCreatedAt: post.createdAt,
+        })
+        .orderBy('post.createdAt', 'DESC')
+        .getOne(),
+      this.postRepository
+        .createQueryBuilder('post')
+        .select(['post.title'])
+        .where('post.createdAt > :postCreatedAt', {
+          postCreatedAt: post.createdAt,
+        })
+        .orderBy('post.createdAt', 'ASC')
+        .getOne(),
+    ]);
+    // todo: prevPost, nextPost에 대한 타입 정의
+    console.log({ ...post, prevPost, nextPost });
     return post;
   }
 
