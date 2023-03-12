@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LinkedPosts, Post } from 'src/posts/entity/post.entity';
+import { Post } from 'src/posts/entity/post.entity';
 import { Repository } from 'typeorm';
 import { CreatePostDto } from 'src/posts/dto/create-post.dto';
 import { User } from 'src/auth/entity/user.entity';
@@ -83,9 +83,9 @@ export class PostsService {
     return posts;
   }
 
-  async getPostByTitle(title: string): Promise<Post | undefined> {
+  async getPostByTitle(title: string) {
     const convertedTitle = title.replace(/-/g, '');
-    const post = await this.postRepository
+    const post: Post = await this.postRepository
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.user', 'user')
       .leftJoinAndSelect('post.tags', 'tags')
@@ -97,11 +97,12 @@ export class PostsService {
         },
       )
       .getOne();
+
     if (!post) {
       throw new BadRequestException('Post not found');
     }
 
-    const [prevPost, nextPost] = await Promise.all([
+    const [prevPosts, nextPosts]: Post[][] = await Promise.all([
       this.postRepository
         .createQueryBuilder('post')
         .select(['post.title'])
@@ -109,7 +110,9 @@ export class PostsService {
           postCreatedAt: post.createdAt,
         })
         .orderBy('post.createdAt', 'DESC')
-        .getOne(),
+        .addOrderBy('post.id', 'DESC')
+        .take(2)
+        .getMany(),
       this.postRepository
         .createQueryBuilder('post')
         .select(['post.title'])
@@ -117,11 +120,19 @@ export class PostsService {
           postCreatedAt: post.createdAt,
         })
         .orderBy('post.createdAt', 'ASC')
-        .getOne(),
+        .addOrderBy('post.id', 'ASC')
+        .take(2)
+        .getMany(),
     ]);
-    // todo: prevPost, nextPost에 대한 타입 정의
-    console.log({ ...post, prevPost, nextPost });
-    return post;
+    let prevPost = prevPosts[0];
+    let nextPost = nextPosts[1];
+    if (!prevPost) {
+      prevPost = null;
+    }
+    if (!nextPost) {
+      nextPost = null;
+    }
+    return { ...post, prevPost, nextPost };
   }
 
   async createPost(createPostDto: CreatePostDto, user: User): Promise<Post> {

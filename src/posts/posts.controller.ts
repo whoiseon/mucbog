@@ -46,9 +46,7 @@ export class PostsController {
 
   @Public()
   @Get('/:title')
-  getPostByTitle(
-    @Param('title') title: string,
-  ): Promise<PostEntity | undefined> {
+  getPostByTitle(@Param('title') title: string) {
     return this.postsService.getPostByTitle(title);
   }
 
