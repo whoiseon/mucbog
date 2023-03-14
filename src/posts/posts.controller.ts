@@ -15,6 +15,7 @@ import { PostsService } from 'src/posts/posts.service';
 import { AccessTokenGuard } from 'src/lib/guards';
 import { TagsService } from 'src/tags/tags.service';
 import { Public } from 'src/lib/decorators/public-decorator';
+import { Pagination } from 'src/lib/pagination/pagination-class';
 
 @Controller('api/posts')
 export class PostsController {
@@ -28,14 +29,16 @@ export class PostsController {
 
   @Public()
   @Get('dev/recent')
-  getDevLatestPosts(): Promise<PostEntity[]> {
-    return this.postsService.getRecentPosts(1);
+  getDevLatestPosts(@Query('page') page = 1): Promise<Pagination<PostEntity>> {
+    return this.postsService.getRecentPosts(1, page);
   }
 
   @Public()
   @Get('project/recent')
-  getProjectLatestPosts(): Promise<PostEntity[]> {
-    return this.postsService.getRecentPosts(2);
+  getProjectLatestPosts(
+    @Query('page') page = 1,
+  ): Promise<Pagination<PostEntity>> {
+    return this.postsService.getRecentPosts(2, page);
   }
 
   @Public()

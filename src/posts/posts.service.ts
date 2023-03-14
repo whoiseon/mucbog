@@ -6,6 +6,7 @@ import { CreatePostDto } from 'src/posts/dto/create-post.dto';
 import { User } from 'src/auth/entity/user.entity';
 import { TagsService } from 'src/tags/tags.service';
 import { CategoriesService } from 'src/categories/categories.service';
+import { Pagination } from 'src/lib/pagination/pagination-class';
 
 @Injectable()
 export class PostsService {
@@ -15,6 +16,8 @@ export class PostsService {
     private tagsService: TagsService,
     private categoryService: CategoriesService,
   ) {}
+
+  private PAGE_SIZE = 10;
 
   async getPosts(): Promise<Post[]> {
     const posts = await this.postRepository.find({
@@ -38,8 +41,11 @@ export class PostsService {
     return posts;
   }
 
-  async getRecentPosts(categoryId: number): Promise<Post[]> {
-    const posts = await this.postRepository.find({
+  async getRecentPosts(
+    categoryId: number,
+    page: number,
+  ): Promise<Pagination<Post>> {
+    const [posts, totalPost] = await this.postRepository.findAndCount({
       relations: ['user', 'tags', 'category'],
       select: [
         'id',
@@ -55,10 +61,36 @@ export class PostsService {
       order: {
         createdAt: 'DESC',
       },
-      take: 20,
+      skip: (page - 1) * this.PAGE_SIZE,
+      take: 10,
     });
-
-    return posts;
+    console.log(page);
+    return new Pagination<Post>({
+      posts,
+      totalPost,
+      currentPage: page,
+      limit: this.PAGE_SIZE,
+    });
+    // const posts = await this.postRepository.find({
+    //   relations: ['user', 'tags', 'category'],
+    //   select: [
+    //     'id',
+    //     'title',
+    //     'description',
+    //     'body',
+    //     'thumbnail',
+    //     'createdAt',
+    //     'user',
+    //     'tags',
+    //   ],
+    //   where: [{ isPrivate: true, category: { id: categoryId } }],
+    //   order: {
+    //     createdAt: 'DESC',
+    //   },
+    //   take: 20,
+    // });
+    //
+    // return posts;
   }
 
   async getPostsByTag(tag: string): Promise<Post[]> {
