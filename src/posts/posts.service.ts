@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Post } from 'src/posts/entity/post.entity';
 import { Repository } from 'typeorm';
@@ -64,37 +68,16 @@ export class PostsService {
       skip: (page - 1) * this.PAGE_SIZE,
       take: 10,
     });
-    console.log(page);
     return new Pagination<Post>({
       posts,
       totalPost,
       currentPage: page,
       limit: this.PAGE_SIZE,
     });
-    // const posts = await this.postRepository.find({
-    //   relations: ['user', 'tags', 'category'],
-    //   select: [
-    //     'id',
-    //     'title',
-    //     'description',
-    //     'body',
-    //     'thumbnail',
-    //     'createdAt',
-    //     'user',
-    //     'tags',
-    //   ],
-    //   where: [{ isPrivate: true, category: { id: categoryId } }],
-    //   order: {
-    //     createdAt: 'DESC',
-    //   },
-    //   take: 20,
-    // });
-    //
-    // return posts;
   }
 
-  async getPostsByTag(tag: string): Promise<Post[]> {
-    const posts = await this.postRepository.find({
+  async getPostsByTag(tag: string, page: number): Promise<Pagination<Post>> {
+    const [posts, totalPost] = await this.postRepository.findAndCount({
       relations: ['user', 'tags', 'category'],
       select: [
         'id',
@@ -110,9 +93,15 @@ export class PostsService {
       order: {
         createdAt: 'DESC',
       },
+      skip: (page - 1) * this.PAGE_SIZE,
+      take: 10,
     });
-
-    return posts;
+    return new Pagination<Post>({
+      posts,
+      totalPost,
+      currentPage: page,
+      limit: this.PAGE_SIZE,
+    });
   }
 
   async getPostByTitle(title: string) {
@@ -192,5 +181,12 @@ export class PostsService {
     }
 
     return post;
+  }
+
+  async deletePosts(id: number): Promise<void> {
+    const result = await this.postRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Can not find Board with id ${id}`);
+    }
   }
 }

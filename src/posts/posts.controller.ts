@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -43,14 +44,26 @@ export class PostsController {
 
   @Public()
   @Get('/tag/:tag')
-  getPostsByTag(@Param('tag') tag: string): Promise<PostEntity[]> {
-    return this.postsService.getPostsByTag(tag);
+  getPostsByTag(
+    @Param('tag') tag: string,
+    @Query('page') page = 1,
+  ): Promise<Pagination<PostEntity>> {
+    return this.postsService.getPostsByTag(tag, page);
   }
 
   @Public()
   @Get('/:title')
   getPostByTitle(@Param('title') title: string) {
     return this.postsService.getPostByTitle(title);
+  }
+
+  @Delete('/:id')
+  @UseGuards(AccessTokenGuard)
+  deletePost(
+    @Param('id') id: number,
+    @GetCurrentUser() user: User,
+  ): Promise<void> {
+    return this.postsService.deletePosts(id);
   }
 
   @Post()
