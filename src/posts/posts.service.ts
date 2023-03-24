@@ -183,6 +183,34 @@ export class PostsService {
     return post;
   }
 
+  async updatePost(createPostDto: CreatePostDto, id: number): Promise<Post> {
+    const { title, body, description, tags, thumbnail, categoryId } =
+      createPostDto;
+    const post = await this.postRepository.findOneBy({ id });
+    if (!post) {
+      throw new NotFoundException(`Can not find Board with id ${id}`);
+    }
+    const category = await this.categoryService.getCategories(categoryId);
+
+    post.title = title;
+    post.body = body;
+    post.description = description;
+    post.thumbnail = thumbnail;
+    post.category = category;
+    post.updatedAt = new Date();
+    // update tag
+    const newTags = [];
+    for (const tagName of tags) {
+      const tag = await this.tagsService.findOrCreate(tagName);
+      newTags.push(tag);
+    }
+    post.tags = newTags;
+
+    await this.postRepository.save(post);
+
+    return post;
+  }
+
   async deletePosts(id: number): Promise<void> {
     const result = await this.postRepository.delete(id);
     if (result.affected === 0) {

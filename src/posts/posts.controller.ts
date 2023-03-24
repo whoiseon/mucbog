@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -64,6 +65,15 @@ export class PostsController {
     @GetCurrentUser() user: User,
   ): Promise<void> {
     return this.postsService.deletePosts(id);
+  }
+
+  @Patch('/:id/update')
+  @UseGuards(AccessTokenGuard)
+  updatePost(
+    @Param('id') id: number,
+    @Body() createPostDto: CreatePostDto,
+  ): Promise<PostEntity> {
+    return this.postsService.updatePost(createPostDto, id);
   }
 
   @Post()
