@@ -30,17 +30,9 @@ export class PostsController {
   }
 
   @Public()
-  @Get('dev/recent')
+  @Get('recent')
   getDevLatestPosts(@Query('page') page = 1): Promise<Pagination<PostEntity>> {
-    return this.postsService.getRecentPosts(1, page);
-  }
-
-  @Public()
-  @Get('project/recent')
-  getProjectLatestPosts(
-    @Query('page') page = 1,
-  ): Promise<Pagination<PostEntity>> {
-    return this.postsService.getRecentPosts(2, page);
+    return this.postsService.getRecentPosts(page);
   }
 
   @Public()

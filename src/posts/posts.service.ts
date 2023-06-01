@@ -9,7 +9,6 @@ import { Repository } from 'typeorm';
 import { CreatePostDto } from 'src/posts/dto/create-post.dto';
 import { User } from 'src/auth/entity/user.entity';
 import { TagsService } from 'src/tags/tags.service';
-import { CategoriesService } from 'src/categories/categories.service';
 import { Pagination } from 'src/lib/pagination/pagination-class';
 
 @Injectable()
@@ -18,7 +17,6 @@ export class PostsService {
     @InjectRepository(Post)
     private postRepository: Repository<Post>,
     private tagsService: TagsService,
-    private categoryService: CategoriesService,
   ) {}
 
   private PAGE_SIZE = 10;
@@ -45,12 +43,9 @@ export class PostsService {
     return posts;
   }
 
-  async getRecentPosts(
-    categoryId: number,
-    page: number,
-  ): Promise<Pagination<Post>> {
+  async getRecentPosts(page: number): Promise<Pagination<Post>> {
     const [posts, totalPost] = await this.postRepository.findAndCount({
-      relations: ['user', 'tags', 'category'],
+      relations: ['user', 'tags'],
       select: [
         'id',
         'title',
@@ -61,7 +56,7 @@ export class PostsService {
         'user',
         'tags',
       ],
-      where: [{ isPrivate: true, category: { id: categoryId } }],
+      where: [{ isPrivate: true }],
       order: {
         createdAt: 'DESC',
       },
@@ -78,7 +73,7 @@ export class PostsService {
 
   async getPostsByTag(tag: string, page: number): Promise<Pagination<Post>> {
     const [posts, totalPost] = await this.postRepository.findAndCount({
-      relations: ['user', 'tags', 'category'],
+      relations: ['user', 'tags'],
       select: [
         'id',
         'title',
@@ -110,7 +105,6 @@ export class PostsService {
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.user', 'user')
       .leftJoinAndSelect('post.tags', 'tags')
-      .leftJoinAndSelect('post.category', 'category')
       .where(
         "REGEXP_REPLACE(LOWER(post.title), '[^a-zA-Z0-9가-힣₩₩s]', '', 'g') = :convertedTitle",
         {
@@ -118,7 +112,7 @@ export class PostsService {
         },
       )
       .getOne();
-
+    console.log(title);
     if (!post) {
       throw new BadRequestException('Post not found');
     }
@@ -157,16 +151,13 @@ export class PostsService {
   }
 
   async createPost(createPostDto: CreatePostDto, user: User): Promise<Post> {
-    const { title, body, description, tags, thumbnail, categoryId } =
-      createPostDto;
-    const category = await this.categoryService.getCategories(categoryId);
+    const { title, body, description, tags, thumbnail } = createPostDto;
     const post = this.postRepository.create({
       user,
       title,
       description,
       body,
       thumbnail,
-      category,
     });
     const newTags = [];
     for (const tagName of tags) {
@@ -184,19 +175,16 @@ export class PostsService {
   }
 
   async updatePost(createPostDto: CreatePostDto, id: number): Promise<Post> {
-    const { title, body, description, tags, thumbnail, categoryId } =
-      createPostDto;
+    const { title, body, description, tags, thumbnail } = createPostDto;
     const post = await this.postRepository.findOneBy({ id });
     if (!post) {
       throw new NotFoundException(`Can not find Board with id ${id}`);
     }
-    const category = await this.categoryService.getCategories(categoryId);
 
     post.title = title;
     post.body = body;
     post.description = description;
     post.thumbnail = thumbnail;
-    post.category = category;
     post.updatedAt = new Date();
     // update tag
     const newTags = [];

@@ -15,7 +15,4 @@ export class CreatePostDto {
 
   @IsString({ each: true })
   tags: string[];
-
-  @IsNumber()
-  categoryId: number;
 }

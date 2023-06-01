@@ -9,7 +9,6 @@ import { PostsModule } from './posts/posts.module';
 import { TagsModule } from './tags/tags.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { MulterModule } from '@nestjs/platform-express';
-import { CategoriesModule } from './categories/categories.module';
 
 @Module({
   imports: [
@@ -30,7 +29,6 @@ import { CategoriesModule } from './categories/categories.module';
     PostsModule,
     TagsModule,
     UploadsModule,
-    CategoriesModule,
   ],
   controllers: [],
   providers: [

@@ -13,7 +13,6 @@ import {
 } from 'typeorm';
 import { User } from 'src/auth/entity/user.entity';
 import { Tag } from 'src/tags/entity/tag.entity';
-import { Category } from 'src/categories/entity/category.entity';
 
 export interface PostWithLinkedPosts extends Post {
   prevPost: Post;
@@ -47,10 +46,6 @@ export class Post extends BaseEntity {
 
   @Column({ length: 255, nullable: true, type: 'varchar' })
   thumbnail?: string;
-
-  @ManyToOne((type) => Category, (category) => category.posts)
-  @JoinColumn({ name: 'categoryId' })
-  category: Category;
 
   @ManyToMany((type) => Tag, (tag) => tag.posts)
   @JoinTable({ name: 'post_tags' })
